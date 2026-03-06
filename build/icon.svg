@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a1e"/>
+      <stop offset="100%" stop-color="#111114"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="50%" stop-color="#FDE68A"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <radialGradient id="innerGlow" cx="0.5" cy="0.45" r="0.5">
+      <stop offset="0%" stop-color="#FFFBEB" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="outerGlow" cx="0.5" cy="0.5" r="0.55">
+      <stop offset="0%" stop-color="#FBBF24" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#FBBF24" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="paperGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="promptDrop">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#92400E" flood-opacity="0.4"/>
+    </filter>
+    <clipPath id="lanternClip">
+      <ellipse cx="512" cy="490" rx="280" ry="310"/>
+    </clipPath>
+  </defs>
+
+  <!-- Full-bleed background so macOS doesn't add a border -->
+  <rect x="0" y="0" width="1024" height="1024" fill="#111114"/>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Outer ambient glow -->
+  <ellipse cx="512" cy="490" rx="360" ry="380" fill="url(#outerGlow)"/>
+
+  <!-- Paper lantern body — soft rounded oval -->
+  <g filter="url(#paperGlow)">
+    <ellipse cx="512" cy="490" rx="280" ry="310" fill="url(#paper)" opacity="0.85"/>
+  </g>
+
+  <!-- Inner warmth -->
+  <ellipse cx="512" cy="490" rx="280" ry="310" fill="url(#innerGlow)"/>
+
+  <!-- Horizontal ribs of the paper lantern -->
+  <ellipse cx="512" cy="280" rx="180" ry="12" fill="none" stroke="#D97706" stroke-width="2.5" opacity="0.35"/>
+  <ellipse cx="512" cy="370" rx="260" ry="12" fill="none" stroke="#D97706" stroke-width="2.5" opacity="0.3"/>
+  <ellipse cx="512" cy="490" rx="280" ry="12" fill="none" stroke="#D97706" stroke-width="2.5" opacity="0.25"/>
+  <ellipse cx="512" cy="610" rx="260" ry="12" fill="none" stroke="#D97706" stroke-width="2.5" opacity="0.3"/>
+  <ellipse cx="512" cy="700" rx="180" ry="12" fill="none" stroke="#D97706" stroke-width="2.5" opacity="0.35"/>
+
+  <!-- Top ring -->
+  <ellipse cx="512" cy="182" rx="70" ry="16" fill="#B45309" stroke="#92400E" stroke-width="2"/>
+  <!-- String/wire -->
+  <line x1="512" y1="120" x2="512" y2="166" stroke="#92400E" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Bottom tassel point -->
+  <ellipse cx="512" cy="798" rx="50" ry="14" fill="#B45309" stroke="#92400E" stroke-width="2"/>
+  <line x1="512" y1="812" x2="512" y2="870" stroke="#92400E" stroke-width="4" stroke-linecap="round"/>
+  <!-- Tassel -->
+  <line x1="500" y1="870" x2="494" y2="900" stroke="#D97706" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <line x1="512" y1="870" x2="512" y2="905" stroke="#D97706" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <line x1="524" y1="870" x2="530" y2="900" stroke="#D97706" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+
+</svg>
