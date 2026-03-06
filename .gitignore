@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+.DS_Store
+build/
+package-lock.json
+.claude/settings.local.json
+.claude/agent-memory/
+*.log
+test-results/

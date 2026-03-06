@@ -1,0 +1,16 @@
+export const GIT_IPC = {
+  GIT_BRANCH: 'git:branch',
+  GIT_UNWATCH: 'git:unwatch',
+  GIT_GRAPH: 'git:graph',
+  GIT_PULL: 'git:pull',
+  GIT_FETCH: 'git:fetch',
+  GIT_STASH: 'git:stash',
+  GIT_STASH_POP: 'git:stashPop',
+  GIT_UPDATE: 'git:update',
+  GIT_LIST_BRANCHES: 'git:listBranches',
+  GIT_CHECKOUT: 'git:checkout',
+  GIT_COMMIT: 'git:commit',
+  GIT_PUSH: 'git:push',
+  GIT_STATUS: 'git:status',
+  GIT_ADD_ALL: 'git:addAll',
+} as const

@@ -1,0 +1,8 @@
+{
+  "id": "demo-plugin",
+  "name": "Demo Plugin",
+  "description": "Demo external plugin with sidebar, menu bar button, and dialog",
+  "version": "1.0.0",
+  "order": 100,
+  "defaultInstalled": true
+}
