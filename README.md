@@ -17,6 +17,33 @@
 
 ---
 
+LanTerm is a terminal emulator for macOS built with Electron, React, and xterm.js. It features GPU-accelerated rendering, split panes, full session persistence, a unified command palette, vim-style hints mode, smart clickable links, 10 color themes, and an extensible plugin sidebar with 6 built-in plugins. Every keybinding is rebindable.
+
+<p align="center">
+  <img src="docs/screenshot.png" alt="LanTerm screenshot" width="800" />
+</p>
+
+## 🚀 Getting Started
+
+```bash
+# Install dependencies (includes native node-pty rebuild for Electron)
+npm install
+
+# Start dev server with hot reload
+npm run dev
+```
+
+Requires macOS, Node.js >= 18, and npm.
+
+```bash
+npm run build      # Production build
+npm run preview    # Preview production build
+npm test           # Run all tests (Playwright e2e + Vitest unit)
+npm run test:unit  # Unit tests only
+```
+
+---
+
 ## ✨ Highlights
 
 - **GPU-accelerated rendering** via WebGL with canvas fallback
@@ -158,32 +185,6 @@ Plugins are installed/uninstalled at runtime via the Plugin Gallery. See [Creati
 | Activate plugin 1–9 | `⌘1` – `⌘9` |
 
 All keybindings are fully rebindable in Settings.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- macOS
-- Node.js ≥ 18
-- npm
-
-### Install & Run
-
-```bash
-# Install dependencies (includes native node-pty rebuild)
-npm install
-
-# Start dev server with hot reload
-npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
-```
 
 ---
 
