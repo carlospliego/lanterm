@@ -15,10 +15,7 @@ import { resolveTerminalTheme } from '../terminalThemes'
 import type { TerminalSession } from '../../shared/types'
 import { useCombinedPlugins } from '../useExternalPlugins'
 
-/** Escape a file path for safe pasting into a shell (backslash-escapes special chars). */
-function shellEscape(path: string): string {
-  return path.replace(/([  ()'\"&;|<>$`!{}[\]*?#~\\])/g, '\\$1')
-}
+import { shellEscape } from '../shellEscape'
 
 interface Props {
   session: TerminalSession
