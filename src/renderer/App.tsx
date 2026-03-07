@@ -139,6 +139,18 @@ export function App() {
   // Scan for external plugins on startup
   useEffect(() => { scanAndLoadExternalPlugins() }, [])
 
+  // Prevent Electron's default file-drop behavior (navigating to the file).
+  // Individual components (e.g. TerminalPane) handle drop themselves.
+  useEffect(() => {
+    const preventDrag = (e: DragEvent) => e.preventDefault()
+    document.addEventListener('dragover', preventDrag)
+    document.addEventListener('drop', preventDrag)
+    return () => {
+      document.removeEventListener('dragover', preventDrag)
+      document.removeEventListener('drop', preventDrag)
+    }
+  }, [])
+
   // Listen for cross-window activate-and-scroll requests
   useEffect(() => {
     return window.termAPI.onActivateAndScroll((terminalId, lineIndex, matchStart, matchLength) => {

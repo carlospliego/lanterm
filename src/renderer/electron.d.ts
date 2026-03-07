@@ -6,6 +6,7 @@ import type { RemoteFindMatch } from './terminalRegistry'
 
 interface CoreTermAPI {
   homedir: string
+  getPathForFile(file: File): string
 
   // PTY
   ptyCreate(args: { id: string; cwd: string; cols: number; rows: number; shell?: string }): Promise<void>

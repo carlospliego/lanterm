@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { SerializeAddon } from '@xterm/addon-serialize'
@@ -14,6 +14,11 @@ import { IconDisplay } from './IconDisplay'
 import { resolveTerminalTheme } from '../terminalThemes'
 import type { TerminalSession } from '../../shared/types'
 import { useCombinedPlugins } from '../useExternalPlugins'
+
+/** Escape a file path for safe pasting into a shell (backslash-escapes special chars). */
+function shellEscape(path: string): string {
+  return path.replace(/([  ()'\"&;|<>$`!{}[\]*?#~\\])/g, '\\$1')
+}
 
 interface Props {
   session: TerminalSession
@@ -49,6 +54,7 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
   const removeTerminal = useAppStore(s => s.removeTerminal)
   const combinedPlugins = useCombinedPlugins()
   const fontSize = session.fontSize ?? globalFontSize
+  const [dragOver, setDragOver] = useState(false)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -187,8 +193,43 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
     observer.observe(containerRef.current)
     resizeObserverRef.current = observer
 
+    // Drag-and-drop file paths into terminal.
+    // Use document-level capture to guarantee we intercept drops before any
+    // child element (xterm canvas/WebGL) can swallow or ignore them.
+    const container = containerRef.current!
+    const onDragOver = (e: DragEvent) => {
+      if (!container.contains(e.target as Node)) return
+      e.preventDefault()
+      setDragOver(true)
+    }
+    const onDragLeave = (e: DragEvent) => {
+      if (!container.contains(e.target as Node)) return
+      setDragOver(false)
+    }
+    const onDrop = (e: DragEvent) => {
+      if (!container.contains(e.target as Node)) return
+      e.preventDefault()
+      setDragOver(false)
+      const files = e.dataTransfer?.files
+      if (!files || files.length === 0) return
+      const paths: string[] = []
+      for (let i = 0; i < files.length; i++) {
+        const filePath = window.termAPI.getPathForFile(files[i])
+        if (filePath) paths.push(shellEscape(filePath))
+      }
+      if (paths.length > 0) {
+        window.termAPI.ptyWrite(session.id, paths.join(' '))
+      }
+    }
+    document.addEventListener('dragover', onDragOver, true)
+    document.addEventListener('dragleave', onDragLeave, true)
+    document.addEventListener('drop', onDrop, true)
+
     // Cleanup
     return () => {
+      document.removeEventListener('dragover', onDragOver, true)
+      document.removeEventListener('dragleave', onDragLeave, true)
+      document.removeEventListener('drop', onDrop, true)
       intentionalKillRef.current = true
       serializeRegistry.delete(session.id)
       focusRegistry.delete(session.id)
@@ -355,7 +396,14 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
       </div>
       <div
         ref={containerRef}
-        style={{ flex: 1, overflow: 'hidden', padding: '2px 8px 0 12px', background: termBg }}
+        style={{
+          flex: 1,
+          overflow: 'hidden',
+          padding: '2px 8px 0 12px',
+          background: termBg,
+          outline: dragOver ? '2px solid var(--accent)' : 'none',
+          outlineOffset: -2,
+        }}
         onClick={() => {
           termRef.current?.focus()
           onFocus?.()

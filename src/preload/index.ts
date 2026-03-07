@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, webFrame } from 'electron'
+import { contextBridge, ipcRenderer, webFrame, webUtils } from 'electron'
 import { homedir } from 'os'
 import { IPC } from '../shared/ipcChannels'
 import type {
@@ -11,6 +11,8 @@ import { pluginPreloadFactories } from '../plugins/registry-preload'
 
 const termAPI = {
   homedir: homedir(),
+
+  getPathForFile: (file: File) => webUtils.getPathForFile(file),
 
   ptyCreate: (args: PtyCreateArgs) =>
     ipcRenderer.invoke(IPC.PTY_CREATE, args),
