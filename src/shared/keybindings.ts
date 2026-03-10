@@ -49,8 +49,8 @@ export interface Keybinding {
 export const DEFAULT_KEYBINDINGS: Record<CommandId, Keybinding> = {
   newTerminal:        { key: 't',          meta: true,  shift: false, alt: false },
   closeTerminal:      { key: 'w',          meta: true,  shift: false, alt: false },
-  prevTerminal:       { key: 'ArrowLeft',  meta: true,  shift: false, alt: true  },
-  nextTerminal:       { key: 'ArrowRight', meta: true,  shift: false, alt: true  },
+  prevTerminal:       { key: 'ArrowUp',    meta: true,  shift: false, alt: false },
+  nextTerminal:       { key: 'ArrowDown',  meta: true,  shift: false, alt: false },
   toggleSidebar:      { key: 'ArrowLeft',  meta: true,  shift: false, alt: false },
   toggleRightSidebar: { key: 'ArrowRight', meta: true,  shift: false, alt: false },
   openSettings:       { key: ',',          meta: true,  shift: false, alt: false },
