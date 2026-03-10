@@ -1,6 +1,6 @@
 {
   "name": "lanterm",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "LanTerm — a macOS terminal emulator",
   "main": "out/main/index.js",
   "scripts": {
