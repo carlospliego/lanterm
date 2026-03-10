@@ -116,6 +116,20 @@ const termAPI = {
   externalPluginImport: () => ipcRenderer.invoke(IPC.EXTERNAL_PLUGIN_IMPORT),
   externalPluginsOpenDir: () => ipcRenderer.invoke(IPC.EXTERNAL_PLUGINS_OPEN_DIR),
 
+  // Notification system
+  notifyTerminalComplete: (id: string, name: string): Promise<void> =>
+    ipcRenderer.invoke(IPC.NOTIFY_TERMINAL_COMPLETE, { id, name }),
+
+  isAppFocused: (): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.APP_IS_FOCUSED),
+
+  onTerminalActivate: (cb: (terminalId: string) => void): (() => void) => {
+    const handler = (_e: Electron.IpcRendererEvent, data: { terminalId: string }) =>
+      cb(data.terminalId)
+    ipcRenderer.on(IPC.TERMINAL_ACTIVATE, handler)
+    return () => ipcRenderer.removeListener(IPC.TERMINAL_ACTIVATE, handler)
+  },
+
   // Plugin APIs
   ...pluginPreloadFactories.reduce((acc, factory) => ({ ...acc, ...factory(ipcRenderer) }), {}),
 }

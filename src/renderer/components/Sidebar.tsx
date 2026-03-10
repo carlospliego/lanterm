@@ -594,6 +594,24 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
     return () => window.removeEventListener('duplicate-active-folder', handler)
   }, [folders, terminals])
 
+  // Listen for clear-unseen-completion event from notification clicks
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const terminalId = (e as CustomEvent).detail as string
+      if (terminalId) {
+        lastOutputTimeRef.current.delete(terminalId)
+        setUnseenCompletions(prev => {
+          if (!prev.has(terminalId)) return prev
+          const next = new Set(prev)
+          next.delete(terminalId)
+          return next
+        })
+      }
+    }
+    window.addEventListener('clear-unseen-completion', handler)
+    return () => window.removeEventListener('clear-unseen-completion', handler)
+  }, [])
+
   const [runningChildren, setRunningChildren] = useState<Set<string>>(new Set())
   const [unseenCompletions, setUnseenCompletions] = useState<Set<string>>(new Set())
   const activeTerminalIdRef = useRef(activeTerminalId)
@@ -644,27 +662,69 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
 
   useEffect(() => {
     const QUIET_MS = 1500
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const now = Date.now()
+      const quietIds: string[] = []
       lastOutputTimeRef.current.forEach((lastTime, id) => {
         if (now - lastTime >= QUIET_MS) {
-          lastOutputTimeRef.current.delete(id)
-          setUnseenCompletions(prev => prev.has(id) ? prev : new Set(prev).add(id))
+          quietIds.push(id)
         }
       })
+
+      if (quietIds.length === 0) return
+
+      // Check if app is focused before showing notifications/badges
+      const isFocused = await window.termAPI.isAppFocused()
+
+      for (const id of quietIds) {
+        lastOutputTimeRef.current.delete(id)
+        if (!isFocused) {
+          setUnseenCompletions(prev => prev.has(id) ? prev : new Set(prev).add(id))
+          // Send notification
+          const term = terminalsRef.current.find(t => t.id === id)
+          if (term) {
+            window.termAPI.notifyTerminalComplete(id, term.title)
+          }
+        }
+      }
     }, 500)
     return () => clearInterval(interval)
   }, [])
 
   const badgeRef = useRef(-1)
   useEffect(() => {
-    const terminalIds = new Set(terminals.map(t => t.id))
-    const redCount = [...unseenCompletions].filter(id => terminalIds.has(id)).length
-    if (redCount !== badgeRef.current) {
-      badgeRef.current = redCount
-      window.termAPI.setBadge(redCount)
+    const updateBadge = async () => {
+      const isFocused = await window.termAPI.isAppFocused()
+      if (isFocused) {
+        // Clear badge when app is focused
+        if (badgeRef.current !== 0) {
+          badgeRef.current = 0
+          window.termAPI.setBadge(0)
+        }
+        return
+      }
+
+      const terminalIds = new Set(terminals.map(t => t.id))
+      const redCount = [...unseenCompletions].filter(id => terminalIds.has(id)).length
+      if (redCount !== badgeRef.current) {
+        badgeRef.current = redCount
+        window.termAPI.setBadge(redCount)
+      }
     }
+    updateBadge()
   }, [unseenCompletions, terminals])
+
+  // Clear badge when window gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      if (badgeRef.current !== 0) {
+        badgeRef.current = 0
+        window.termAPI.setBadge(0)
+      }
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [])
 
 
   // --- Drag state ---

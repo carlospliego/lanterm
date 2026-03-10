@@ -53,6 +53,11 @@ interface CoreTermAPI {
   externalPluginRemove(pluginId: string): Promise<boolean>
   externalPluginImport(): Promise<{ ok: boolean; error?: string }>
   externalPluginsOpenDir(): Promise<void>
+
+  // Notification system
+  notifyTerminalComplete(id: string, name: string): Promise<void>
+  isAppFocused(): Promise<boolean>
+  onTerminalActivate(cb: (terminalId: string) => void): () => void
 }
 
 type TermAPI = CoreTermAPI & PluginTermAPI

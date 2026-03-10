@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell, Notification } from 'electron'
 import { execFileSync } from 'child_process'
 import { join, resolve, isAbsolute } from 'path'
 import { homedir } from 'os'
@@ -53,6 +53,7 @@ const windowBoundsCache = new Map<string, { x: number; y: number; width: number;
 let handlersRegistered = false
 let isQuitting = false
 let pendingReset = false
+let isAnyWindowFocused = false
 
 function stripAnsi(s: string): string {
   return s.replace(/\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07]*(?:\x07|\x1b\\)|\x1b[()][AB012]|\x1b[=>]/g, '')
@@ -288,6 +289,34 @@ function registerHandlers() {
     }
   })
 
+  // Check if any window is focused
+  ipcMain.handle(IPC.APP_IS_FOCUSED, () => isAnyWindowFocused)
+
+  // Show notification when terminal completes (only when app is not focused)
+  ipcMain.handle(IPC.NOTIFY_TERMINAL_COMPLETE, (_event, args: { id: string; name: string }) => {
+    if (isAnyWindowFocused) return
+
+    const notification = new Notification({
+      title: 'Terminal Ready',
+      body: args.name,
+      silent: false,
+    })
+
+    notification.on('click', () => {
+      // Focus the first available window and send activate event
+      for (const win of windows) {
+        if (!win.isDestroyed()) {
+          win.show()
+          win.focus()
+          win.webContents.send(IPC.TERMINAL_ACTIVATE, { terminalId: args.id })
+          break
+        }
+      }
+    })
+
+    notification.show()
+  })
+
   // Register plugin-specific handlers
   const getWindows = () => windows
   for (const mod of pluginMainModules) mod.register(getWindows)
@@ -354,6 +383,16 @@ function createWindow(windowId?: string, bounds?: { x: number; y: number; width:
     if (!isQuitting && !pendingReset) {
       removeWindowState(id)
     }
+  })
+
+  // Track window focus state for notifications
+  win.on('focus', () => {
+    isAnyWindowFocused = true
+  })
+
+  win.on('blur', () => {
+    // Check if any other window is still focused
+    isAnyWindowFocused = [...windows].some(w => !w.isDestroyed() && w.isFocused())
   })
 
   // Notify plugins about the first window being ready
