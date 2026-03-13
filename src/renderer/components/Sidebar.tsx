@@ -398,11 +398,12 @@ function FolderRow({
                   onClick={() => { onFocusPane(term.id); onSelectTerminal(term.id) }}
                   onContextMenu={e => { e.preventDefault(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}
                 >
-                  {runningChildIds.has(term.id)
-                    ? <StatusDot />
-                    : term.icon
-                        ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
+                  {term.icon
+                    ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
+                    : runningChildIds.has(term.id)
+                        ? <StatusDot />
                         : <span style={{ color: 'var(--text-faintest)', fontSize: 9, flexShrink: 0 }}>⊟</span>}
+                  {term.icon && runningChildIds.has(term.id) && <StatusDot />}
                   {editingId === term.id
                     ? <InlineRenameInput value={term.title} onCommit={v => onCommitRename(term.id, v)} onCancel={onCancelRename} />
                     : <span style={styles.termTitle}>{term.title}</span>}
@@ -434,11 +435,12 @@ function FolderRow({
                   onClick={() => { onFocusPane(rightTerm.id); onSelectTerminal(rightTerm.id) }}
                   onContextMenu={e => { e.preventDefault(); onOpenIconPicker({ type: 'terminal', id: rightTerm.id }) }}
                 >
-                  {runningChildIds.has(rightTerm.id)
-                    ? <StatusDot />
-                    : rightTerm.icon
-                        ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: rightTerm.id }) }}><IconDisplay icon={rightTerm.icon} /></span>
+                  {rightTerm.icon
+                    ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: rightTerm.id }) }}><IconDisplay icon={rightTerm.icon} /></span>
+                    : runningChildIds.has(rightTerm.id)
+                        ? <StatusDot />
                         : null}
+                  {rightTerm.icon && runningChildIds.has(rightTerm.id) && <StatusDot />}
                   {editingId === rightTerm.id
                     ? <InlineRenameInput value={rightTerm.title} onCommit={v => onCommitRename(rightTerm.id, v)} onCancel={onCancelRename} />
                     : <span style={styles.termTitle}>{rightTerm.title}</span>}
@@ -481,11 +483,12 @@ function FolderRow({
               onMouseEnter={() => setHoveredTerm(term.id)}
               onMouseLeave={() => setHoveredTerm(null)}
             >
-              {runningChildIds.has(term.id)
-                ? <StatusDot />
-                : term.icon
-                    ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
+              {term.icon
+                ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
+                : runningChildIds.has(term.id)
+                    ? <StatusDot />
                     : <span style={{ color: 'var(--text-faintest)', fontSize: 10, flexShrink: 0 }}>›</span>}
+              {term.icon && runningChildIds.has(term.id) && <StatusDot />}
               {editingId === term.id
                 ? <InlineRenameInput value={term.title} onCommit={v => onCommitRename(term.id, v)} onCancel={onCancelRename} />
                 : <span style={styles.termTitle}>{term.title}</span>}
