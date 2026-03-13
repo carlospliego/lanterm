@@ -166,21 +166,6 @@ export function App() {
     })
   }, [setActiveTerminal])
 
-  // Listen for notification clicks to activate a terminal
-  useEffect(() => {
-    return window.termAPI.onTerminalActivate((terminalId) => {
-      setActiveTerminal(terminalId)
-      // Clear the unseen completion via custom event (Sidebar listens for this)
-      window.dispatchEvent(new CustomEvent('clear-unseen-completion', { detail: terminalId }))
-      setTimeout(() => {
-        const term = focusRegistry.get(terminalId)
-        if (term) {
-          term.focus()
-        }
-      }, 50)
-    })
-  }, [setActiveTerminal])
-
   // Apply theme to <html data-theme="..."> and sync resolvedTheme into store
   // When a named terminal theme is selected, derive UI CSS vars from it
   useEffect(() => {

@@ -32,7 +32,6 @@ interface CoreTermAPI {
   getWindowId(): string
 
   // App
-  setBadge(count: number): Promise<void>
   setAppZoom(level: number): void
   getAppZoom(): number
   getDefaultShell(): Promise<string>
@@ -54,10 +53,6 @@ interface CoreTermAPI {
   externalPluginImport(): Promise<{ ok: boolean; error?: string }>
   externalPluginsOpenDir(): Promise<void>
 
-  // Notification system
-  notifyTerminalComplete(id: string, name: string): Promise<void>
-  isAppFocused(): Promise<boolean>
-  onTerminalActivate(cb: (terminalId: string) => void): () => void
 }
 
 type TermAPI = CoreTermAPI & PluginTermAPI

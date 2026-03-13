@@ -10,10 +10,10 @@ import { formatBinding, resolveKeybindings } from '../../shared/keybindings'
 import type { Folder, TerminalSession, SplitLayout } from '../../shared/types'
 import { useWorktreeTerminals, type WorktreeInfo } from '../worktreeTracker'
 
-function StatusDot({ type }: { type: 'unseen' | 'running' }) {
+function StatusDot() {
   return (
     <span style={{
-      color: type === 'unseen' ? 'var(--status-unseen)' : 'var(--status-running)',
+      color: 'var(--status-running)',
       fontSize: 7,
       opacity: 0.8,
       flexShrink: 0,
@@ -257,9 +257,7 @@ interface FolderRowProps {
   onDeleteFolder: (folderId: string) => void
   onOpenIconPicker: (target: { type: 'folder' | 'terminal'; id: string }) => void
   runningChildIds: Set<string>
-  unseenCompletionIds: Set<string>
   folderHasRunning: boolean
-  folderHasUnseen: boolean
   favoriteIds: string[]
   toggleFavorite: (id: string) => void
   lastActiveTerminalByFolder: Record<string, string>
@@ -284,8 +282,8 @@ function FolderRow({
   splitLayouts, focusedPaneId, onFocusPane, onSplitDragStart,
   onAddTerminal, onSelectTerminal, onCloseTerminal,
   onDeleteFolder, onOpenIconPicker,
-  runningChildIds, unseenCompletionIds,
-  folderHasRunning, folderHasUnseen,
+  runningChildIds,
+  folderHasRunning,
   favoriteIds, toggleFavorite,
   lastActiveTerminalByFolder,
   editingId, onStartRename, onCommitRename, onCancelRename,
@@ -329,11 +327,7 @@ function FolderRow({
         onContextMenu={e => { e.preventDefault(); onOpenIconPicker({ type: 'folder', id: folder.id }) }}
       >
         <span style={{ fontSize: 10, color: 'var(--text-faintest)' }}>{collapsed ? '▶' : '▼'}</span>
-        {folderHasUnseen
-          ? <StatusDot type="unseen" />
-          : folderHasRunning
-            ? <StatusDot type="running" />
-            : null}
+        {folderHasRunning ? <StatusDot /> : null}
         {folder.icon && (
           <span
             style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }}
@@ -404,11 +398,9 @@ function FolderRow({
                   onClick={() => { onFocusPane(term.id); onSelectTerminal(term.id) }}
                   onContextMenu={e => { e.preventDefault(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}
                 >
-                  {unseenCompletionIds.has(term.id)
-                    ? <StatusDot type="unseen" />
-                    : runningChildIds.has(term.id)
-                      ? <StatusDot type="running" />
-                      : term.icon
+                  {runningChildIds.has(term.id)
+                    ? <StatusDot />
+                    : term.icon
                         ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
                         : <span style={{ color: 'var(--text-faintest)', fontSize: 9, flexShrink: 0 }}>⊟</span>}
                   {editingId === term.id
@@ -442,11 +434,9 @@ function FolderRow({
                   onClick={() => { onFocusPane(rightTerm.id); onSelectTerminal(rightTerm.id) }}
                   onContextMenu={e => { e.preventDefault(); onOpenIconPicker({ type: 'terminal', id: rightTerm.id }) }}
                 >
-                  {unseenCompletionIds.has(rightTerm.id)
-                    ? <StatusDot type="unseen" />
-                    : runningChildIds.has(rightTerm.id)
-                      ? <StatusDot type="running" />
-                      : rightTerm.icon
+                  {runningChildIds.has(rightTerm.id)
+                    ? <StatusDot />
+                    : rightTerm.icon
                         ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: rightTerm.id }) }}><IconDisplay icon={rightTerm.icon} /></span>
                         : null}
                   {editingId === rightTerm.id
@@ -491,11 +481,9 @@ function FolderRow({
               onMouseEnter={() => setHoveredTerm(term.id)}
               onMouseLeave={() => setHoveredTerm(null)}
             >
-              {unseenCompletionIds.has(term.id)
-                ? <StatusDot type="unseen" />
-                : runningChildIds.has(term.id)
-                  ? <StatusDot type="running" />
-                  : term.icon
+              {runningChildIds.has(term.id)
+                ? <StatusDot />
+                : term.icon
                     ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); onOpenIconPicker({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
                     : <span style={{ color: 'var(--text-faintest)', fontSize: 10, flexShrink: 0 }}>›</span>}
               {editingId === term.id
@@ -594,26 +582,7 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
     return () => window.removeEventListener('duplicate-active-folder', handler)
   }, [folders, terminals])
 
-  // Listen for clear-unseen-completion event from notification clicks
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const terminalId = (e as CustomEvent).detail as string
-      if (terminalId) {
-        lastOutputTimeRef.current.delete(terminalId)
-        setUnseenCompletions(prev => {
-          if (!prev.has(terminalId)) return prev
-          const next = new Set(prev)
-          next.delete(terminalId)
-          return next
-        })
-      }
-    }
-    window.addEventListener('clear-unseen-completion', handler)
-    return () => window.removeEventListener('clear-unseen-completion', handler)
-  }, [])
-
   const [runningChildren, setRunningChildren] = useState<Set<string>>(new Set())
-  const [unseenCompletions, setUnseenCompletions] = useState<Set<string>>(new Set())
   const activeTerminalIdRef = useRef(activeTerminalId)
   useEffect(() => { activeTerminalIdRef.current = activeTerminalId }, [activeTerminalId])
   const splitLayoutsRef = useRef(splitLayouts)
@@ -637,95 +606,6 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
     const interval = setInterval(checkAll, 2000)
     return () => clearInterval(interval)
   }, [])
-
-  // Red dot: background terminal output that has gone quiet (Claude finished, waiting for input)
-  const lastOutputTimeRef = useRef<Map<string, number>>(new Map())
-  const trackingActiveRef = useRef(false)
-
-  useEffect(() => {
-    const timeout = setTimeout(() => { trackingActiveRef.current = true }, 3000)
-    return () => clearTimeout(timeout)
-  }, [])
-
-  useEffect(() => {
-    return window.termAPI.onPtyData((id) => {
-      if (trackingActiveRef.current && id !== activeTerminalIdRef.current) {
-        // Don't track a split partner — both panes are visible simultaneously
-        const isPartner = splitLayoutsRef.current.some(
-          sl => (sl.leftId === id || sl.rightId === id) &&
-                (sl.leftId === activeTerminalIdRef.current || sl.rightId === activeTerminalIdRef.current)
-        )
-        if (!isPartner) lastOutputTimeRef.current.set(id, Date.now())
-      }
-    })
-  }, [])
-
-  useEffect(() => {
-    const QUIET_MS = 1500
-    const interval = setInterval(async () => {
-      const now = Date.now()
-      const quietIds: string[] = []
-      lastOutputTimeRef.current.forEach((lastTime, id) => {
-        if (now - lastTime >= QUIET_MS) {
-          quietIds.push(id)
-        }
-      })
-
-      if (quietIds.length === 0) return
-
-      // Check if app is focused before showing notifications/badges
-      const isFocused = await window.termAPI.isAppFocused()
-
-      for (const id of quietIds) {
-        lastOutputTimeRef.current.delete(id)
-        if (!isFocused) {
-          setUnseenCompletions(prev => prev.has(id) ? prev : new Set(prev).add(id))
-          // Send notification
-          const term = terminalsRef.current.find(t => t.id === id)
-          if (term) {
-            window.termAPI.notifyTerminalComplete(id, term.title)
-          }
-        }
-      }
-    }, 500)
-    return () => clearInterval(interval)
-  }, [])
-
-  const badgeRef = useRef(-1)
-  useEffect(() => {
-    const updateBadge = async () => {
-      const isFocused = await window.termAPI.isAppFocused()
-      if (isFocused) {
-        // Clear badge when app is focused
-        if (badgeRef.current !== 0) {
-          badgeRef.current = 0
-          window.termAPI.setBadge(0)
-        }
-        return
-      }
-
-      const terminalIds = new Set(terminals.map(t => t.id))
-      const redCount = [...unseenCompletions].filter(id => terminalIds.has(id)).length
-      if (redCount !== badgeRef.current) {
-        badgeRef.current = redCount
-        window.termAPI.setBadge(redCount)
-      }
-    }
-    updateBadge()
-  }, [unseenCompletions, terminals])
-
-  // Clear badge when window gains focus
-  useEffect(() => {
-    const handleFocus = () => {
-      if (badgeRef.current !== 0) {
-        badgeRef.current = 0
-        window.termAPI.setBadge(0)
-      }
-    }
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [])
-
 
   // --- Drag state ---
   const dragPayload = useRef<DragPayload | null>(null)
@@ -940,22 +820,8 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
     setActiveFolder(id)
   }
 
-  function clearUnseenCompletion(id: string) {
-    lastOutputTimeRef.current.delete(id)
-    setUnseenCompletions(prev => {
-      if (!prev.has(id)) return prev
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
-  }
-
   function handleSelectTerminal(id: string) {
     setActiveTerminal(id)
-    clearUnseenCompletion(id)
-    // Clear the split partner too — both panes are visible at once
-    const split = splitLayouts.find(sl => sl.leftId === id || sl.rightId === id)
-    if (split) clearUnseenCompletion(split.leftId === id ? split.rightId : split.leftId)
   }
 
   function handleOpenSettings(target: { type: 'folder' | 'terminal'; id: string }) {
@@ -1053,7 +919,6 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
       .map(child => renderFolder(child, depth + 1))
     const descendantIds = collectDescendantTerminals(folder.id).map(t => t.id)
     const folderHasRunning = descendantIds.some(id => runningChildren.has(id))
-    const folderHasUnseen = descendantIds.some(id => unseenCompletions.has(id))
     return (
       <FolderRow
         key={folder.id}
@@ -1091,9 +956,7 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
         onDeleteFolder={handleMoveFolderToTrash}
         onOpenIconPicker={handleOpenSettings}
         runningChildIds={runningChildren}
-        unseenCompletionIds={unseenCompletions}
         folderHasRunning={folderHasRunning}
-        folderHasUnseen={folderHasUnseen}
         favoriteIds={favoriteIds}
         toggleFavorite={toggleFavorite}
         lastActiveTerminalByFolder={lastActiveTerminalByFolder}
@@ -1176,11 +1039,9 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
                      style={{ ...styles.termItem, paddingLeft: 22,
                               ...(term.id === effectiveActiveTerminalId ? styles.termItemActive : {}) }}
                      onClick={() => handleSelectTerminal(term.id)}>
-                  {unseenCompletions.has(term.id)
-                    ? <StatusDot type="unseen" />
-                    : runningChildren.has(term.id)
-                      ? <StatusDot type="running" />
-                      : term.icon
+                  {runningChildren.has(term.id)
+                    ? <StatusDot />
+                    : term.icon
                         ? <IconDisplay icon={term.icon} style={{ fontSize: 13 }} />
                         : <span style={{ color: 'var(--text-faintest)', fontSize: 10 }}>›</span>}
                   <span style={styles.termTitle}>{term.title}</span>
@@ -1272,11 +1133,9 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
                       onClick={() => { setFocusedPane(term.id); handleSelectTerminal(term.id) }}
                       onContextMenu={e => { e.preventDefault(); handleOpenSettings({ type: 'terminal', id: term.id }) }}
                     >
-                      {unseenCompletions.has(term.id)
-                        ? <StatusDot type="unseen" />
-                        : runningChildren.has(term.id)
-                          ? <StatusDot type="running" />
-                          : term.icon
+                      {runningChildren.has(term.id)
+                        ? <StatusDot />
+                        : term.icon
                             ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); handleOpenSettings({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
                             : <span style={{ color: 'var(--text-faintest)', fontSize: 9, flexShrink: 0 }}>⊟</span>}
                       {editingId === term.id
@@ -1310,11 +1169,9 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
                       onClick={() => { setFocusedPane(rightTerm.id); handleSelectTerminal(rightTerm.id) }}
                       onContextMenu={e => { e.preventDefault(); handleOpenSettings({ type: 'terminal', id: rightTerm.id }) }}
                     >
-                      {unseenCompletions.has(rightTerm.id)
-                        ? <StatusDot type="unseen" />
-                        : runningChildren.has(rightTerm.id)
-                          ? <StatusDot type="running" />
-                          : rightTerm.icon
+                      {runningChildren.has(rightTerm.id)
+                        ? <StatusDot />
+                        : rightTerm.icon
                             ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); handleOpenSettings({ type: 'terminal', id: rightTerm.id }) }}><IconDisplay icon={rightTerm.icon} /></span>
                             : null}
                       {editingId === rightTerm.id
@@ -1363,11 +1220,9 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
                     onMouseEnter={() => setHoveredStandaloneTerm(term.id)}
                     onMouseLeave={() => setHoveredStandaloneTerm(null)}
                   >
-                    {unseenCompletions.has(term.id)
-                      ? <StatusDot type="unseen" />
-                      : runningChildren.has(term.id)
-                        ? <StatusDot type="running" />
-                        : term.icon
+                    {runningChildren.has(term.id)
+                      ? <StatusDot />
+                      : term.icon
                           ? <span style={{ fontSize: 13, flexShrink: 0, cursor: 'pointer' }} onClick={e => { e.stopPropagation(); handleOpenSettings({ type: 'terminal', id: term.id }) }}><IconDisplay icon={term.icon} /></span>
                           : <span style={{ color: 'var(--text-faintest)', fontSize: 10, flexShrink: 0 }}>›</span>}
                     {editingId === term.id

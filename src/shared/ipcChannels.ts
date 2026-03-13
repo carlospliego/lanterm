@@ -13,7 +13,6 @@ export const IPC = {
   SETTINGS_LOAD: 'settings:load',
   SETTINGS_SAVE: 'settings:save',
   SETTINGS_CHANGED: 'settings:changed',
-  SET_BADGE: 'app:setBadge',
   HISTORY_READ: 'history:read',
   APP_GET_DEFAULT_SHELL: 'app:getDefaultShell',
   OPEN_EXTERNAL_URL: 'app:openExternalUrl',
@@ -34,10 +33,6 @@ export const IPC = {
   PTY_DATA: 'pty:data',
   PTY_EXIT: 'pty:exit',
 
-  // Notification system
-  NOTIFY_TERMINAL_COMPLETE: 'notify:terminalComplete',
-  APP_IS_FOCUSED: 'app:isFocused',
-  TERMINAL_ACTIVATE: 'terminal:activate',
 } as const
 
 export type IpcChannels = typeof IPC

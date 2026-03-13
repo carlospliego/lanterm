@@ -4,7 +4,6 @@ import { GitSettings } from './renderer/GitSettings'
 import { GitMenuBarInfo } from './renderer/GitMenuBarInfo'
 import { GitBranchIcon } from '../../renderer/components/ActivityBarIcons'
 import { useGitAvailability } from './renderer/useGitAvailability'
-import { useGitBadge } from './renderer/useGitBadge'
 
 export const gitPlugin: SidebarPlugin = {
   id: 'git',
@@ -13,7 +12,6 @@ export const gitPlugin: SidebarPlugin = {
   order: 0,
   icon: GitBranchIcon,
   useIsAvailable: () => useGitAvailability(s => s.available),
-  useBadge: useGitBadge,
   PanelComponent: GitGraphPanel,
   SettingsComponent: GitSettings,
   MenuBarComponent: GitMenuBarInfo,

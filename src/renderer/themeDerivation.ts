@@ -88,7 +88,6 @@ export function deriveUITheme(def: TerminalThemeDefinition): Record<string, stri
   vars['--subtle-bg'] = withAlpha(fg, 0.03)
 
   // Status & git colors — map from ANSI colors
-  vars['--status-unseen'] = red
   vars['--status-running'] = green
   vars['--status-dirty'] = yellow
   vars['--status-ahead'] = blue

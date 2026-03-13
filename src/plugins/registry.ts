@@ -7,11 +7,6 @@ import { worktreePlugin } from './worktree/manifest'
 import { vimShortcutsPlugin } from './vim-shortcuts/manifest'
 import { buttonsPlugin } from './buttons/manifest'
 
-export interface BadgeData {
-  count?: number
-  label?: string
-}
-
 export interface SidebarPlugin {
   id: string
   name: string
@@ -19,7 +14,6 @@ export interface SidebarPlugin {
   order: number
   icon?: ComponentType<{ size?: number }>
   useIsAvailable?: () => boolean
-  useBadge?: () => BadgeData | null
   PanelComponent: ComponentType
   SettingsComponent?: ComponentType
   OverlayComponent?: ComponentType

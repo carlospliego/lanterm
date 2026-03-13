@@ -8,39 +8,6 @@ import type { SidebarPlugin } from '../../plugins/registry'
 const BAR_WIDTH = 36
 const ICON_SIZE = 16
 
-function PluginBadge({ plugin }: { plugin: SidebarPlugin }) {
-  if (!plugin.useBadge) return null
-  const badge = plugin.useBadge()
-  if (!badge || !badge.count) return null
-  const display = badge.count > 99 ? '99+' : String(badge.count)
-  return (
-    <span
-      style={{
-        position: 'absolute',
-        top: 2,
-        right: 2,
-        minWidth: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: 'var(--accent)',
-        color: '#fff',
-        fontSize: 9,
-        fontWeight: 700,
-        fontFamily: FONT_MONO,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '0 3px',
-        pointerEvents: 'none',
-        lineHeight: 1,
-        zIndex: 2,
-      }}
-    >
-      {display}
-    </span>
-  )
-}
-
 function ActivityBarButton({
   plugin,
   isActive,
@@ -103,7 +70,6 @@ function ActivityBarButton({
       ) : (
         <Icon size={ICON_SIZE} />
       )}
-      <PluginBadge plugin={plugin} />
     </button>
   )
 }
