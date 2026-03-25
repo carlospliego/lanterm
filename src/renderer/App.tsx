@@ -17,7 +17,7 @@ import { TrashDialog } from './components/TrashDialog'
 import { ToastContainer } from './components/Toast'
 import { ZoomIndicator, showZoomIndicator } from './components/ZoomIndicator'
 import { InputDialogContainer } from './components/InputDialog'
-import { ConfirmDialogContainer } from './components/ConfirmDialog'
+import { ConfirmDialogContainer, showConfirm } from './components/ConfirmDialog'
 import { ListPickerContainer } from './components/ListPicker'
 import { HintsOverlay } from './components/HintsOverlay'
 import { OnboardingTour } from './components/OnboardingTour'
@@ -270,10 +270,9 @@ export function App() {
     if (folderId) {
       const folder = fs.find(f => f.id === folderId)
       const childTerminals = ts.filter(t => t.folderId === folderId)
-      if (childTerminals.length > 0) {
-        const confirmed = window.confirm(`Move "${folder?.name ?? 'folder'}" to trash?\n\nThis will close ${childTerminals.length} terminal${childTerminals.length === 1 ? '' : 's'}.`)
-        if (!confirmed) return
-      }
+      const detail = childTerminals.length > 0 ? `This will close ${childTerminals.length} terminal${childTerminals.length === 1 ? '' : 's'}.` : undefined
+      const confirmed = await showConfirm('Move to Trash', `Move "${folder?.name ?? 'folder'}" to trash?`, { confirmLabel: 'Move to Trash', destructive: true, detail })
+      if (!confirmed) return
       childTerminals.forEach(t => window.termAPI.ptyKill(t.id))
       moveToTrash('folder', folderId)
       return
@@ -284,6 +283,9 @@ export function App() {
       return
     }
     if (!activeId) return
+    const term = ts.find(t => t.id === activeId)
+    const confirmed = await showConfirm('Move to Trash', `Move "${term?.title ?? 'terminal'}" to trash?`, { confirmLabel: 'Move to Trash', destructive: true })
+    if (!confirmed) return
     window.termAPI.ptyKill(activeId)
     moveToTrash('terminal', activeId)
   }, [moveToTrash])

@@ -37,6 +37,8 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
   // Prevents onPtyExit from removing the session when cleanup intentionally kills the PTY
   const intentionalKillRef = useRef(false)
+  // Track whether viewport is at the bottom (auto-scroll active) vs user scrolled up
+  const autoScrollRef = useRef(true)
 
   // Data selectors (re-render only when these specific values change)
   const sidebarOpen = useAppStore(s => s.sidebarOpen)
@@ -150,6 +152,18 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
     // 6. Wire input
     term.onData(data => window.termAPI.ptyWrite(session.id, data))
 
+    // 6b. Auto-scroll: stay at bottom unless user manually scrolls up
+    autoScrollRef.current = true
+    const scrollDisposable = term.onScroll(() => {
+      const buf = term.buffer.active
+      autoScrollRef.current = buf.viewportY >= buf.baseY
+    })
+    const writeParsedDisposable = term.onWriteParsed(() => {
+      if (autoScrollRef.current) {
+        term.scrollToBottom()
+      }
+    })
+
     // 7. Use xterm's built-in OSC parser for CWD reporting (handles buffered/split
     //    data and both BEL and ST terminators, unlike raw regex on data chunks)
     term.parser.registerOscHandler(7, (data) => {
@@ -183,6 +197,7 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
         rafId = null
         try {
           fitAddon.fit()
+          if (autoScrollRef.current) term.scrollToBottom()
           window.termAPI.ptyResize(session.id, term.cols, term.rows)
         } catch { /* ignore during unmount */ }
       })
@@ -236,6 +251,8 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
         updateScrollback(session.id, scrollback)
       } catch { /* ignore */ }
 
+      scrollDisposable.dispose()
+      writeParsedDisposable.dispose()
       unsubDataRef.current?.()
       unsubExitRef.current?.()
       if (rafId != null) cancelAnimationFrame(rafId)
@@ -253,6 +270,7 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
       setTimeout(() => {
         try {
           fitAddonRef.current!.fit()
+          if (autoScrollRef.current) termRef.current!.scrollToBottom()
           window.termAPI.ptyResize(session.id, termRef.current!.cols, termRef.current!.rows)
           if (isFocused === undefined) {
             termRef.current!.focus()
@@ -269,6 +287,7 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
       termRef.current.options.fontSize = fontSize
       try {
         fitAddonRef.current.fit()
+        if (autoScrollRef.current) termRef.current.scrollToBottom()
         window.termAPI.ptyResize(session.id, termRef.current.cols, termRef.current.rows)
       } catch { /* ignore */ }
     }
@@ -280,6 +299,7 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
       termRef.current.options.fontFamily = settings.fontFamily
       try {
         fitAddonRef.current.fit()
+        if (autoScrollRef.current) termRef.current.scrollToBottom()
         window.termAPI.ptyResize(session.id, termRef.current.cols, termRef.current.rows)
       } catch { /* ignore */ }
     }

@@ -6,6 +6,7 @@ import { FolderSettingsPopup } from './FolderSettingsPopup'
 import { TerminalSettingsPopup } from './TerminalSettingsPopup'
 import { IconDisplay } from './IconDisplay'
 import { KebabMenu } from './KebabMenu'
+import { showConfirm } from './ConfirmDialog'
 import { formatBinding, resolveKeybindings } from '../../shared/keybindings'
 import type { Folder, TerminalSession, SplitLayout } from '../../shared/types'
 import { useWorktreeTerminals, type WorktreeInfo } from '../worktreeTracker'
@@ -807,12 +808,19 @@ export function Sidebar({ side = 'left', width }: { side?: 'left' | 'right'; wid
   }
 
   async function handleMoveTerminalToTrash(id: string) {
+    const term = terminals.find(t => t.id === id)
+    const confirmed = await showConfirm('Move to Trash', `Move "${term?.title ?? 'terminal'}" to trash?`, { confirmLabel: 'Move to Trash', destructive: true })
+    if (!confirmed) return
     window.termAPI.ptyKill(id)
     moveToTrash('terminal', id)
   }
 
-  function handleMoveFolderToTrash(folderId: string) {
+  async function handleMoveFolderToTrash(folderId: string) {
+    const folder = folders.find(f => f.id === folderId)
     const affected = collectDescendantTerminals(folderId)
+    const detail = affected.length > 0 ? `This will close ${affected.length} terminal${affected.length === 1 ? '' : 's'}.` : undefined
+    const confirmed = await showConfirm('Move to Trash', `Move "${folder?.name ?? 'folder'}" to trash?`, { confirmLabel: 'Move to Trash', destructive: true, detail })
+    if (!confirmed) return
     affected.forEach(t => window.termAPI.ptyKill(t.id))
     moveToTrash('folder', folderId)
   }
