@@ -350,6 +350,19 @@ export function SettingsDialog() {
                 )}
               </div>
 
+              {/* New Terminal Opens In */}
+              <div style={sectionStyle}>
+                <label style={labelStyle}>New Terminal Opens In</label>
+                <select
+                  value={settings.newTerminalCwd}
+                  onChange={e => updateSettings({ newTerminalCwd: e.target.value as 'default' | 'lastUsed' })}
+                  style={{ ...inputStyle, width: 'auto', cursor: 'pointer' }}
+                >
+                  <option value="default">Default directory</option>
+                  <option value="lastUsed">Last used directory</option>
+                </select>
+              </div>
+
               {/* Font */}
               <div style={sectionStyle}>
                 <label style={labelStyle}>Font</label>

@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS: Settings = {
   terminalTheme: 'auto',
   customCommands: [],
   pluginSettings: DEFAULT_PLUGIN_SETTINGS,
+  newTerminalCwd: 'default',
   restoreWindows: true,
   onboardingComplete: false,
 }
@@ -331,11 +332,14 @@ export const useAppStore = create<AppStore>()(
       const active = ts.find(t => t.id === activeTerminalId)
       const folderId = active?.folderId
       const id = uuidv4()
+      const useLastCwd = s.newTerminalCwd === 'lastUsed'
 
       if (folderId) {
         const folder = folders.find(f => f.id === folderId)
         const folderTerminals = ts.filter(t => t.folderId === folderId)
-        const cwd = folder?.defaultCwd || s.defaultDirectory || (folderTerminals.length > 0 ? folderTerminals[folderTerminals.length - 1].cwd : window.termAPI.homedir)
+        const cwd = useLastCwd
+          ? (active?.cwd || folder?.defaultCwd || s.defaultDirectory || window.termAPI.homedir)
+          : (folder?.defaultCwd || s.defaultDirectory || (folderTerminals.length > 0 ? folderTerminals[folderTerminals.length - 1].cwd : window.termAPI.homedir))
         get().addTerminal({
           id,
           folderId,
@@ -349,7 +353,9 @@ export const useAppStore = create<AppStore>()(
         })
       } else {
         const standalone = ts.filter(t => !t.folderId)
-        const cwd = s.defaultDirectory || active?.cwd || (standalone.length > 0 ? standalone[standalone.length - 1].cwd : window.termAPI.homedir)
+        const cwd = useLastCwd
+          ? (active?.cwd || s.defaultDirectory || window.termAPI.homedir)
+          : (s.defaultDirectory || active?.cwd || (standalone.length > 0 ? standalone[standalone.length - 1].cwd : window.termAPI.homedir))
         get().addTerminal({ id, title: `Terminal ${ts.length + 1}`, cwd, order: standalone.length, scrollback: '', icon: 'fa:fa-solid fa-terminal' })
       }
 

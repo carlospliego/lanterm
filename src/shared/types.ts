@@ -103,6 +103,7 @@ export interface Settings {
   terminalTheme: string  // theme id, default 'auto'
   customCommands: CustomCommand[]
   pluginSettings: PluginSettingsMap
+  newTerminalCwd: 'default' | 'lastUsed'
   restoreWindows: boolean
   onboardingComplete: boolean
 }
