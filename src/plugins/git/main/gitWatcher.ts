@@ -1,11 +1,34 @@
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import fs from 'fs'
+import path from 'path'
 import type { BrowserWindow } from 'electron'
 import { GIT_IPC } from '../shared/channels'
 import { broadcast } from '../../plugin-main'
 
 const execFileAsync = promisify(execFile)
+
+/** Per-repo serialization queue to prevent concurrent git operations */
+const repoQueues = new Map<string, Promise<unknown>>()
+
+export function withRepoLock<T>(cwd: string, fn: () => Promise<T>): Promise<T> {
+  const prev = repoQueues.get(cwd) ?? Promise.resolve()
+  const next = prev.then(fn, fn)
+  repoQueues.set(cwd, next)
+  next.finally(() => {
+    if (repoQueues.get(cwd) === next) repoQueues.delete(cwd)
+  })
+  return next
+}
+
+function indexLockExists(gitRoot: string): boolean {
+  try {
+    fs.accessSync(path.join(gitRoot, '.git', 'index.lock'))
+    return true
+  } catch {
+    return false
+  }
+}
 
 interface GitWatchEntry {
   watcher: fs.FSWatcher
@@ -70,13 +93,16 @@ export function watchTerminal(id: string, gitRoot: string, getWindows: () => Set
       if (prev) clearTimeout(prev)
       debounceTimers.set(gitRoot, setTimeout(async () => {
         debounceTimers.delete(gitRoot)
+        // Skip if another git process holds the index lock — its release
+        // will trigger another watch event so we'll catch up then
+        if (indexLockExists(gitRoot)) return
         const entry = gitWatchers.get(gitRoot)
         if (!entry) return
-        const info = await queryGitInfo(gitRoot)
+        const info = await withRepoLock(gitRoot, () => queryGitInfo(gitRoot))
         for (const tid of entry.terminals) {
           broadcast(getWindows, GIT_IPC.GIT_UPDATE, { id: tid, info })
         }
-      }, 300))
+      }, 1000))
     })
     watcher.on('error', () => {
       gitWatchers.delete(gitRoot)
