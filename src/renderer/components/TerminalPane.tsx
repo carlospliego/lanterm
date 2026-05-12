@@ -105,6 +105,18 @@ export const TerminalPane = React.memo(function TerminalPane({ session, isActive
       if (event.type === 'keydown' && event.metaKey && (event.key === 'Backspace' || event.key === 'Delete')) {
         return false
       }
+      if (
+        event.type === 'keydown' &&
+        event.key === 'Enter' &&
+        (event.shiftKey || event.altKey) &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+        window.termAPI.ptyWrite(session.id, '\x1b\r')
+        return false
+      }
       return true
     })
 
